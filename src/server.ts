@@ -1,6 +1,6 @@
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
-import * as express from "express";
+import express = require("express");
 import * as logger from "morgan";
 import * as path from "path";
 import errorHandler = require("errorhandler");
@@ -74,6 +74,7 @@ export class Server {
         this.app.set("view engine", "pug");
 
         //use logger middleware
+        // noinspection TypeScriptValidateTypes
         this.app.use(logger('dev'));
 
         //use json form parser middleware

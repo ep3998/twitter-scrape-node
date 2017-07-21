@@ -5,7 +5,8 @@
 var server = require("../dist/server");
 var debug = require("debug")("express:server");
 var http = require("http");
-
+var request = require("request");
+var cron = require("node-cron");
 
 //create http server
 var httpPort = normalizePort(process.env.PORT || 7080);
@@ -23,7 +24,12 @@ io.on('connection', function(client){
 
   function onTest(data){
       console.log('Receive: "' + data + '" from client: ' + client.id);
-      io.emit('reply', "Cheers, " + client.id + " - message: " + data);
+
+      var reply = {
+          message: "Cheers, " + client.id + " - message: " + data,
+          time: 0
+      }
+      io.emit('reply', reply);
   }
 
   function onDisconnect(){
@@ -31,6 +37,29 @@ io.on('connection', function(client){
       client.removeListener('test', onTest);
       client.removeListener('disconnect', onDisconnect);
   }
+});
+
+//Test cron calls
+cron.schedule('*/5 * * * * *', function() {
+   console.log('running every 5 seconds');
+    var options = { method: 'GET',
+        url: 'http://httpbin.org/ip',
+        headers:
+            { 'cache-control': 'no-cache' },
+        time: true
+    };
+
+    request(options, function (error, response, body) {
+        if (error) throw new Error(error);
+
+        console.log(body);
+
+        var reply = {
+            message: body,
+            time: response.timingPhases.total
+        }
+        io.emit('reply', reply);
+    });
 });
 
 //listen on provided ports
